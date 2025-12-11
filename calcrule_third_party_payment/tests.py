@@ -6,7 +6,7 @@ from datetime import date, timedelta
 from django.test import TestCase
 
 from claim.models import Claim, ClaimDedRem
-from claim.services import submit_claim, validate_and_process_dedrem_claim
+from claim.services import submit_claim, processing_claim
 from claim.test_helpers import (
     create_test_claim,
     create_test_claimitem,
@@ -44,7 +44,7 @@ _TEST_DATA_USER = {
     "other_names": _TEST_USER_NAME,
     "user_types": "INTERACTIVE",
     "language": "en",
-    "roles": [1, 5, 9],
+    "roles": [1],
 }
 
 
@@ -195,7 +195,7 @@ class BatchRunFeeForServiceTest(TestCase):
         user = create_test_interactive_user()
 
         errors = submit_claim(claim1, user)
-        errors += validate_and_process_dedrem_claim(claim1, user, True)
+        errors += processing_claim(claim1, user, True)
         claim1.process_stamp = claim1.validity_from
         claim1.save()
         self.assertEqual(len(errors), 0)
