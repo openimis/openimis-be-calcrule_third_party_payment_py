@@ -15,8 +15,7 @@ from claim.test_helpers import (
 from claim_batch.services import do_process_batch
 from contribution.test_helpers import create_test_payer, create_test_premium
 from contribution_plan.tests.helpers import create_test_payment_plan
-from core.services import create_or_update_core_user, create_or_update_interactive_user
-from core.test_helpers import create_test_interactive_user
+from core.test_helpers import create_test_interactive_user, create_admin_role
 from insuree.test_helpers import create_test_insuree
 from invoice.models import Bill, BillItem
 from location.test_helpers import create_test_health_facility, create_test_location
@@ -44,19 +43,15 @@ _TEST_DATA_USER = {
     "other_names": _TEST_USER_NAME,
     "user_types": "INTERACTIVE",
     "language": "en",
-    "roles": [1],
+    "roles": [create_admin_role().id],
 }
 
 
 class BatchRunFeeForServiceTest(TestCase):
+
     def setUp(self) -> None:
         super(BatchRunFeeForServiceTest, self).setUp()
-        i_user, i_user_created = create_or_update_interactive_user(
-            user_id=None, data=_TEST_DATA_USER, audit_user_id=999, connected=False
-        )
-        user, user_created = create_or_update_core_user(
-            user_uuid=None, username=_TEST_DATA_USER["username"], i_user=i_user
-        )
+        user = create_test_interactive_user(username=_TEST_DATA_USER["username"])
         self.user = user
 
     def test_simple_batch(self):
