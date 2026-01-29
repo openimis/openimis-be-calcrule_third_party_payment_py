@@ -157,8 +157,8 @@ class BatchRunFeeForServiceTest(TestCase):
                 "items_pricelist_id": test_item_price_list.id,
             },
         )
-        add_service_to_hf_pricelist(service, test_health_facility.id)
-        add_item_to_hf_pricelist(item, test_health_facility.id)
+        add_service_to_hf_pricelist(service, test_health_facility)
+        add_item_to_hf_pricelist(item, test_health_facility)
 
         claim1 = create_test_claim(
             {
