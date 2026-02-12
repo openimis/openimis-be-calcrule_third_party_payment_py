@@ -6,7 +6,7 @@ from datetime import date, timedelta
 from django.test import TestCase
 
 from claim.models import Claim, ClaimDedRem
-from claim.services import submit_claim, validate_and_process_dedrem_claim
+from claim.services import submit_claim, processing_claim
 from claim.test_helpers import (
     create_test_claim,
     create_test_claimitem,
@@ -15,8 +15,7 @@ from claim.test_helpers import (
 from claim_batch.services import do_process_batch
 from contribution.test_helpers import create_test_payer, create_test_premium
 from contribution_plan.tests.helpers import create_test_payment_plan
-from core.services import create_or_update_core_user, create_or_update_interactive_user
-from core.test_helpers import create_test_interactive_user
+from core.test_helpers import create_test_interactive_user, create_admin_role
 from insuree.test_helpers import create_test_insuree
 from invoice.models import Bill, BillItem
 from location.test_helpers import create_test_health_facility, create_test_location
@@ -44,19 +43,15 @@ _TEST_DATA_USER = {
     "other_names": _TEST_USER_NAME,
     "user_types": "INTERACTIVE",
     "language": "en",
-    "roles": [1, 5, 9],
+    "roles": [create_admin_role().id],
 }
 
 
 class BatchRunFeeForServiceTest(TestCase):
+
     def setUp(self) -> None:
         super(BatchRunFeeForServiceTest, self).setUp()
-        i_user, i_user_created = create_or_update_interactive_user(
-            user_id=None, data=_TEST_DATA_USER, audit_user_id=999, connected=False
-        )
-        user, user_created = create_or_update_core_user(
-            user_uuid=None, username=_TEST_DATA_USER["username"], i_user=i_user
-        )
+        user = create_test_interactive_user(username=_TEST_DATA_USER["username"])
         self.user = user
 
     def test_simple_batch(self):
@@ -162,8 +157,8 @@ class BatchRunFeeForServiceTest(TestCase):
                 "items_pricelist_id": test_item_price_list.id,
             },
         )
-        add_service_to_hf_pricelist(service, test_health_facility.id)
-        add_item_to_hf_pricelist(item, test_health_facility.id)
+        add_service_to_hf_pricelist(service, test_health_facility)
+        add_item_to_hf_pricelist(item, test_health_facility)
 
         claim1 = create_test_claim(
             {
@@ -195,7 +190,7 @@ class BatchRunFeeForServiceTest(TestCase):
         user = create_test_interactive_user()
 
         errors = submit_claim(claim1, user)
-        errors += validate_and_process_dedrem_claim(claim1, user, True)
+        errors += processing_claim(claim1, user, True)
         claim1.process_stamp = claim1.validity_from
         claim1.save()
         self.assertEqual(len(errors), 0)

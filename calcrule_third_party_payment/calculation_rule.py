@@ -28,7 +28,7 @@ from claim.models import ClaimItem, ClaimService
 from claim_batch.services import (
     get_hospital_claim_filter,
     update_claim_valuated,
-    update_claim_indexed_remunerated
+    update_claim_indexed_remunerated,
 )
 from contribution_plan.models import PaymentPlan
 from contribution_plan.utils import obtain_calcrule_params
