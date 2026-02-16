@@ -202,7 +202,7 @@ class BatchRunFeeForServiceTest(TestCase):
         # Make sure that the dedrem was generated
         dedrem = ClaimDedRem.objects.filter(claim=claim1).first()
         self.assertIsNotNone(dedrem)
-        self.assertEquals(dedrem.rem_g, 500)  # 100*2 + 100*3
+        self.assertEqual(dedrem.rem_g, 500)  # 100*2 + 100*3
         # renumerated should be Null
         self.assertEqual(claim1.remunerated, None)
         days_in_month = calendar.monthrange(
@@ -217,7 +217,7 @@ class BatchRunFeeForServiceTest(TestCase):
         item1.refresh_from_db()
         service1.refresh_from_db()
 
-        self.assertEquals(claim1.status, Claim.STATUS_VALUATED)
+        self.assertEqual(claim1.status, Claim.STATUS_VALUATED)
         self.assertNotEqual(item1.price_valuated, item1.price_adjusted)
         self.assertNotEqual(service1.price_valuated, service1.price_adjusted)
         # based on calculation - should be 201.15 per item and service
