@@ -12,7 +12,7 @@ from claim.test_helpers import (
     create_test_claimitem,
     create_test_claimservice,
 )
-from claim_batch.services import do_process_batch
+from claim_batch.services import process_batch
 from contribution.test_helpers import create_test_payer, create_test_premium
 from contribution_plan.tests.helpers import create_test_payment_plan
 from core.test_helpers import create_test_interactive_user, create_admin_role
@@ -209,10 +209,7 @@ class BatchRunFeeForServiceTest(TestCase):
             claim1.validity_from.year, claim1.validity_from.month
         )[1]
         # When
-        end_date = datetime.datetime(
-            claim1.date_processed.year, claim1.date_processed.month, days_in_month
-        )
-        batch_run = do_process_batch(self.user.id_for_audit, test_region.id, end_date)
+        batch_run = process_batch(self.user.id_for_audit, product, claim1.date_processed.month, claim1.date_processed.year)
         claim1.refresh_from_db()
         item1.refresh_from_db()
         service1.refresh_from_db()

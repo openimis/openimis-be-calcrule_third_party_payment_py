@@ -26,7 +26,9 @@ from calcrule_third_party_payment.utils import (
 )
 from claim.models import ClaimItem, ClaimService
 from claim_batch.services import (
+    combine_product_filters,
     get_hospital_claim_filter,
+    get_products_from_work_data,
     update_claim_valuated,
     update_claim_indexed_remunerated,
 )
@@ -206,13 +208,20 @@ class ThirdPartyPaymentCalculationRule(AbsStrategy):
 
     @staticmethod
     def filter_work_data(work_data, pp_params):
-        product = work_data.get("product")
+        products = get_products_from_work_data(work_data)
+        if not products:
+            return work_data
+
         work_data["claims"] = (
             work_data["claims"]
             .filter(get_hospital_level_filter(pp_params))
             .filter(
-                get_hospital_claim_filter(
-                    product.ceiling_interpretation, pp_params["claim_type"]
+                combine_product_filters(
+                    products,
+                    lambda p: (Q(items__product=p) | Q(services__product=p))
+                    & get_hospital_claim_filter(
+                        p.ceiling_interpretation, pp_params["claim_type"]
+                    ),
                 )
             )
         )
@@ -220,8 +229,12 @@ class ThirdPartyPaymentCalculationRule(AbsStrategy):
             work_data["items"]
             .filter(get_hospital_level_filter(pp_params, prefix="claim__"))
             .filter(
-                get_hospital_claim_filter(
-                    product.ceiling_interpretation, pp_params["claim_type"], "claim__"
+                combine_product_filters(
+                    products,
+                    lambda p: Q(product=p)
+                    & get_hospital_claim_filter(
+                        p.ceiling_interpretation, pp_params["claim_type"], "claim__"
+                    ),
                 )
             )
         )
@@ -229,8 +242,12 @@ class ThirdPartyPaymentCalculationRule(AbsStrategy):
             work_data["services"]
             .filter(get_hospital_level_filter(pp_params, prefix="claim__"))
             .filter(
-                get_hospital_claim_filter(
-                    product.ceiling_interpretation, pp_params["claim_type"], "claim__"
+                combine_product_filters(
+                    products,
+                    lambda p: Q(product=p)
+                    & get_hospital_claim_filter(
+                        p.ceiling_interpretation, pp_params["claim_type"], "claim__"
+                    ),
                 )
             )
         )
